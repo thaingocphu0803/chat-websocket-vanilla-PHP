@@ -38,11 +38,11 @@
 		<div class="wrapper-content">
 			<div class="chat-body">
 				<?php for($i= 0; $i < 20; $i++){ ?>
-				<div class="chat-message">
+				<div class="chat-message align-self-right">
 					<strong class="text-orange-700">user1:</strong>
 					<span>hello</span>
 				</div>
-				<div class="chat-message">
+				<div class="chat-message align-self-left">
 				<strong class="text-blue-700">user2:</strong>
 				<span>hello</span>
 				</div>
@@ -59,8 +59,14 @@
 		</div>
 	</div> <!-- end main page -->
 
-	<!-- main.js -->
-	<script src="./js/main.js"></script>
+	<!-- input contains userid -->
+	<input type="hidden" name="userid">
+
+	<!-- lib.js -->
+	<script src="./js/lib.js"></script>
+
+	<!-- chat.js -->
+	<script src="./js/chat.js"></script>
 
 	<!-- login.js -->
 	 <script src="./js/login.js"></script>

@@ -92,13 +92,23 @@ textarea {
 	background: #ffffff;
 	padding: 1em;
 	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.align-self-left {
+	align-self: start;
+}
+
+.align-self-right {
+	align-self: end;
 }
 
 .chat-message {
 	word-break: break-word;
     overflow-wrap: break-word;
     word-wrap: break-word;
-	max-width: 300px;
+	/* max-width: 300px; */
 	margin: 5px;
 }	
  
@@ -109,4 +119,5 @@ textarea {
 .text-blue-700 {
 	color: #1976D2
 }
+
 
