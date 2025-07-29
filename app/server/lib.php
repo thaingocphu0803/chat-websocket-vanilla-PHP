@@ -73,17 +73,39 @@ function handshake($client)
 	$response .= "Sec-WebSocket-Accept: $accept_key\r\n\r\n";
 
 	try{
-		socket_write($client, $response, strlen($response));
+		$write = socket_write($client, $response, strlen($response));
+		if($write == false){
+			throw new Exception("Socket write failed: " . socket_strerror(socket_last_error($client)));
+		}
 		return true;
 	}catch(Exception $e){
-		
+		echo $e->getMessage();
+		exit;
 	}
-
-
 }
 
-
-function get_array_message($data)
+// get message array from raw message
+function get_message_arr($data)
 {
 	return json_decode($data, true);
 }
+
+//get raw message form socket client
+function get_message_raw($client)
+{
+		$data = socket_read($client, BUFFER_SIZE);
+		$decode_data = decode_data($data);
+
+		return $decode_data;
+
+}
+
+// handle to send message to client
+function send_message($client, $message = [])
+{
+    $message = json_encode($message);
+    $encode_message = encode_data($message);
+    socket_write($client, $encode_message, strlen($encode_message));
+}
+
+
