@@ -1,14 +1,19 @@
 <?php
-require_once('lib.php');
-require_once('config.php');
+
+require_once __DIR__ . '/../../boostrap.php';
+
+// import MessageController
+import_controller('MessageController');
 
 class SocketServer
 {
 	private $server;
 	private $clients = [];
+	private $messageController;
 
-	public function __construct($host, $port)
+	public function __construct($host, $port, $messageController)
 	{
+		$this->messageController = $messageController;
 		$this->init_socket($host, $port);
 		$this->accept_connection();
 	}
@@ -85,7 +90,7 @@ class SocketServer
 			$client_id = $message_arr['data']['userid'];
 			$this->clients[$client_id] = $new_client;
 			echo "New connection $client_id\n";
-		}else{
+		} else {
 			echo "Connect failed.\n";
 		}
 	}
@@ -112,18 +117,26 @@ class SocketServer
 		}
 	}
 
-	function send_to_assign_client($message_arr){
-		if(count($message_arr) && $message_arr['type'] == WS_TYPE_CHAT){
-			foreach($this->clients as $key => $val){
-				if($key == $message_arr['data']['to']){
+	function send_to_assign_client($message_arr)
+	{
+		if (count($message_arr) && $message_arr['type'] == WS_TYPE_CHAT) {
+			foreach ($this->clients as $key => $val) {
+				if ($key == $message_arr['data']['receiver']) {
 					$client = $val;
-					send_message($client, $message_arr);
+
+					// sending message to assign client if saving message to db successfully
+					$is_savedMessage = $this->messageController->saveMessage($message_arr['data']);
+					if ($is_savedMessage) {
+						send_message($client, $message_arr);
+					}
 				}
 			}
-		}else{
+		} else {
 			echo "Failed to send message.\n";
 		}
 	}
 }
 
-new SocketServer(WS_HOST, WS_PORT);
+$messageController = new MessageController();
+
+new SocketServer(WS_HOST, WS_PORT, $messageController);
