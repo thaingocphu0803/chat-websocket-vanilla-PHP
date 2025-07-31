@@ -36,21 +36,12 @@
 			<span class="error-message invisible">error</span>
 		</div>
 		<div class="wrapper-content">
-			<div class="chat-body">
-				<?php for($i= 0; $i < 20; $i++){ ?>
-				<div class="chat-message align-self-right">
-					<strong class="text-orange-700">user1:</strong>
-					<span>hello</span>
-				</div>
-				<div class="chat-message align-self-left">
-				<strong class="text-blue-700">user2:</strong>
-				<span>hello</span>
-				</div>
-				<?php } ?>
+			<div id="chat_body" class="chat-body">
+				<!-- message content here ! -->
 			</div>
 
 			<div class="flex gap-10">
-				<select name="" id="" class="input-control">
+				<select name="receiver" class="input-control">
 					<option value="" selected disabled>Choose user</option>
 				</select>
 				<textarea type="text" name="message" rows="3" placeholder="Enter message..."></textarea>
@@ -60,7 +51,8 @@
 	</div> <!-- end main page -->
 
 	<!-- input contains userid -->
-	<input type="hidden" name="userid">
+	<input type="hidden" name="current_userid">
+	<input type="hidden" name="current_username">
 
 	<!-- lib.js -->
 	<script src="./js/lib.js"></script>

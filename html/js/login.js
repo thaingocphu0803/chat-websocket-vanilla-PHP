@@ -3,37 +3,67 @@
 	
 	let FUNCT = {};
 
+	/**
+	 * Show login error message
+	 */
 	FUNCT.renderLoginError = (message) => {
 		let loginError = document.querySelector(".login-error");
 
 		loginError.textContent = message;
 
+		// Make the error visible if currently hidden
 		if (loginError.classList.contains("invisible")) {
 			loginError.classList.remove("invisible");
 		}
 	};
 
-	FUNCT.renderPagebyState = (userid) => {
+	/**
+	 * Toggle between login page and main page based on login state
+	 */
+	FUNCT.renderPagebyLoginState = (userid, username) => {
 		let loginPage = document.getElementById("login_page");
 		let mainPage = document.getElementById("main_page");
-		let useridInput = document.querySelector('input[name="userid"]');
+		let currentUserid = document.querySelector('input[name="current_userid"]');
+		let currentUsername = document.querySelector('input[name="current_username"]');
+
 		
 		if (typeof userid !== 'undefined' && parseInt(userid) !== 0) {
+			
+			// Logged in: hide login page and show main page
 			loginPage.hidden = true;
 			mainPage.hidden = false;
-			useridInput.value = userid;
+
+			// Set current user info
+			currentUserid.value = userid;
+			currentUsername.value = username;
+			
+			// Connect to WebSocket server
+			socketConnect(userid)
 		} else {
+			// Not logged in: show login page
 			loginPage.hidden = false;
 			mainPage.hidden = true;
 		}
 	};
 
+	/**
+	 * Check current login state from the server
+	 */
 	FUNCT.checkLoginState = async () => {
-		let response = await getApi("check_login_state_api");
+		let response = await getApi("auth/getLoginState");
+		
+		if(response.code !== "0") return;
+
 		let userId = response.data.userid;
-		FUNCT.renderPagebyState(userId);
+		let username = response.data.name;
+
+		// Render page according to login state
+		FUNCT.renderPagebyLoginState(userId, username);
 	};
 
+	/**
+	 * Listen to login button click and perform login
+	 */
 	FUNCT.loginEvent = () => {
 		document.addEventListener("click", async function (e) {
 			if (e.target.matches("button.loginBtn")) {
@@ -44,6 +74,7 @@
 					.querySelector('input[name="pssw"]')
 					.value.trim();
 
+				// Validate login input
 				if (!FUNCT.validateLogin(userid, pssw)) return;
 
 				let payload = {
@@ -51,39 +82,34 @@
 					pssw,
 				};
 
-				let response = await postApi("login_api", payload);
+				// Send login request
+				let response = await postApi("auth/login", payload);
 
+				// Handle login failure
 				if (response.code && response.code !== "0") {
-					let message;
-					if (response.code == "api-0001") {
-						message = response.message;
-					} else {
-						message = "Login failed.";
-					}
+					let message = response.message;
 
 					FUNCT.renderLoginError(message);
 
 					return;
 				}
 
-				let userId = response.data.userId;
-				FUNCT.renderPagebyState(userId);
+				// Login success: render main page
+				let userId = response.data.userid;
+				let username = response.data.name;
+				FUNCT.renderPagebyLoginState(userId, username);
 
 			}
 		});
 	};
 
-	FUNCT.keyUpLoginEvent = () => {
-		document.addEventListener("keyup", function (e) {
-			if (e.key === "Enter") {
-				FUNCT.loginEvent();
-			}
-		});
-	};
-
+	/**
+	 * Validate login input fields
+	 */
 	FUNCT.validateLogin = (userid, psssw) => {
 		let flag = true;
 
+		// Must enter both userid and password
 		if (!userid.length || !psssw.length) {
 			flag = false;
 			let message = "Please enter user id and password!";
@@ -93,9 +119,11 @@
 		return flag;
 	};
 
+	/**
+	 * Initialize events on page load
+	 */
 	document.addEventListener("DOMContentLoaded", function () {
 		FUNCT.loginEvent();
-		FUNCT.keyUpLoginEvent();
 		FUNCT.checkLoginState();
 	});
 })();
