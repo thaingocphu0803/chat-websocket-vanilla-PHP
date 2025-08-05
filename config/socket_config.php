@@ -1,10 +1,8 @@
 <?php
 
 // WebSocket server listening address and port
-define('WS_HOST', 'YOUR_HOST');
-define('WS_PORT', 'YOUR_PORT');
-
-
+define('WS_HOST', '192.168.0.99');
+define('WS_PORT', 5000);
 
 // Socket select timeout (0 = no timeout)
 define('TIMEOUT', 0);
