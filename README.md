@@ -59,7 +59,7 @@ define('WS_PORT', 5000);		//change to your port
 Start the WebSocket server before opening the project in the browser:
 
 ```bash
-php /var/www/your_domain/app/server/socket_server.php
+php /var/www/<your_domain>/app/server/socket_server.php
 ```
 Keep this terminal open for the server to stay running.
 
