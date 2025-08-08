@@ -23,7 +23,7 @@
 				<label for="pssw" class="label-control">Password</label>
 				<input class="input-control" type="password" name="pssw" id="pssw">
 			</div>
-			<span class="error-message login-error invisible">error</span>
+			<span class="login-error error-message text-center invisible">error</span>
 
 			<button type="button" class="btn loginBtn">Login</button>
 		</div>
@@ -36,19 +36,73 @@
 			<span class="error-message invisible">error</span>
 		</div>
 		<div class="wrapper-content">
-			<div id="chat_body" class="chat-body">
-				<!-- message content here ! -->
-			</div>
-
 			<div class="flex gap-10">
-				<select name="receiver" class="input-control">
-					<option value="" selected disabled>Choose user</option>
-				</select>
+				<div id="chat_body" class="chat-body">
+					<!-- message content here ! -->
+				</div>
+				<div class="flex flex-col gap-20">
+
+					<!-- select chat type -->
+					<select name="chat-type" class="input-control select-text-ellipsis">
+						<option selected disabled>Choose type</option>
+						<option value="group" class="">Chat group</option>
+						<option value="private">Chat Private</option>
+					</select>
+
+					<!-- select chat private -->
+					<select name="receiver" class="select-private input-control select-text-ellipsis d-none">
+						<option selected disabled>Choose User</option>
+					</select>
+
+
+					<div class="select-group flex flex-col gap-10 d-none">
+						<!-- add group btn -->
+						<button data-open-modal="#add_group" class="btn btn-sm">Add group</button>
+
+						<!-- select chat grooup -->
+						<select name="group" class="input-control select-text-ellipsis">
+							<option selected disabled>Choose Group</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="flex gap-10">
 				<textarea type="text" name="message" rows="3" placeholder="Enter message..."></textarea>
-				<button type="button" class="btn sendBtn">send</button>
+				<button type="button" class="sendBtn btn w-100">Send</button>
 			</div>
 		</div>
 	</div> <!-- end main page -->
+
+
+	<!-- modal -->
+	<div id="add_group" class="modal">
+		<div class="modal-container">
+			<span data-close-modal="#add_group" class="close">&times;</span>
+			<div class="modal-title">Add Group</div>
+			<div class="modal-content">
+				<div class="wrapper-content">
+					<div class="form-row">
+						<span class="create-group-error error-message invisible">error</span>
+
+						<label for="group_name" class="label-control">group name <strong style="color:red;">(*)</strong></label>
+						<input class="input-control" type="text" name="group_name" id="group_name">
+					</div>
+
+					<div class="select-member">
+						<span class="choosen-users">Choose member...</span>
+						<div class="select-memeber-dropdown">
+							<!-- dropdown item here ! -->
+						</div>
+					</div>
+
+					<div class="flex fustify-between">
+						<button type="button" class="btn btn-sm" data-close-modal="#add_group">Cancel</button>
+						<button type="button" class="createGroup btn btn-sm">Create</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!-- input contains userid -->
 	<input type="hidden" name="current_userid">
@@ -61,7 +115,7 @@
 	<script src="./js/chat.js"></script>
 
 	<!-- login.js -->
-	 <script src="./js/login.js"></script>
+	<script src="./js/login.js"></script>
 </body>
 
 </html>

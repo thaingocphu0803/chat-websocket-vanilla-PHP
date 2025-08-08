@@ -3,19 +3,9 @@
 	
 	let FUNCT = {};
 
-	/**
-	 * Show login error message
-	 */
-	FUNCT.renderLoginError = (message) => {
-		let loginError = document.querySelector(".login-error");
+	// cache error
+	let loginError = document.querySelector(".login-error");
 
-		loginError.textContent = message;
-
-		// Make the error visible if currently hidden
-		if (loginError.classList.contains("invisible")) {
-			loginError.classList.remove("invisible");
-		}
-	};
 
 	/**
 	 * Toggle between login page and main page based on login state
@@ -89,7 +79,7 @@
 				if (response.code && response.code !== "0") {
 					let message = response.message;
 
-					FUNCT.renderLoginError(message);
+					renderError(loginError,message);
 
 					return;
 				}
@@ -113,7 +103,7 @@
 		if (!userid.length || !psssw.length) {
 			flag = false;
 			let message = "Please enter user id and password!";
-			FUNCT.renderLoginError(message);
+			renderError(loginError,message);
 		}
 
 		return flag;

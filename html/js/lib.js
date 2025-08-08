@@ -151,3 +151,62 @@ const socketConnect = (userid) => {
 		}
 	};
 };
+
+/**
+ * Create DOM element for dropdown user list
+ */
+const createUserDropdownItem = (user) => {
+	// create dropdown item
+	let dropdownItem = document.createElement("div");
+	dropdownItem.className = "dropdown-item";
+
+	// create dropdown item checkbox
+	let checkbox = document.createElement("input");
+	checkbox.type = "checkbox";
+	checkbox.name = "group_member[]";
+	checkbox.id = user.userid;
+	checkbox.value = user.userid;
+
+	// create dropdown item label
+	let label = document.createElement("label");
+	label.htmlFor = user.userid;
+	label.textContent = user.name;
+
+	// append checkbox and label to dropdown item
+	dropdownItem.append(checkbox, label);
+
+	return dropdownItem;
+};
+
+/**
+ * handle render error
+ */
+const renderError = (errorEl, message) => {
+	errorEl.textContent = message;
+
+	// Make the error visible if currently hidden
+	if (errorEl.classList.contains("invisible")) {
+		errorEl.classList.remove("invisible");
+	}
+};
+/**
+ * Handle Modal Logic
+ */
+(function () {
+	document.addEventListener("click", function (e) {
+		// Open modal
+		if (e.target.matches("[data-open-modal]")) {
+			let modalId = e.target.dataset.openModal;
+			let modal = document.querySelector(modalId);
+			modal.style.display = "block";
+			// Close modal via close button or element
+		} else if (e.target.matches("[data-close-modal]")) {
+			let modalId = e.target.dataset.closeModal;
+			let modal = document.querySelector(modalId);
+			modal.style.display = "none";
+			// Close modal when clicking on the overlay background
+		} else if (e.target.classList.contains("modal")) {
+			e.target.style.display = "none";
+		}
+	});
+})();
