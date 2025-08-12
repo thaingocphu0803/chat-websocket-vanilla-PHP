@@ -3,6 +3,13 @@ var socket;
 //cache message between users
 var chatMessages = [];
 
+// Define apo error code
+var errorCode = {
+	auth0001: "auth-0001",
+	auth0002: "auth-0002",
+	groupChat0001: "groupchat-0001",
+};
+
 /**
  * Send a POST request to API
  */
@@ -189,6 +196,77 @@ const renderError = (errorEl, message) => {
 		errorEl.classList.remove("invisible");
 	}
 };
+
+/**
+ * handle render success message
+ */
+const renderSuccess = (element, message) => {
+	element.textContent = message;
+
+	// Make the success visible if currently hidden
+	if (element.classList.contains("invisible")) {
+		element.classList.remove("invisible");
+	}
+
+	// change text to success color
+	if (!element.classList.contains("text-success")) {
+		element.classList.add("text-success");
+	}
+
+	// reset state after 3s
+	setTimeout(() => {
+		if (!element.classList.contains("invisible")) {
+			element.classList.add("invisible");
+		}
+		if (element.classList.contains("text-success")) {
+			element.classList.remove("text-success");
+		}
+		element.textContent = "";
+	}, 3000);
+};
+
+/**
+ * create DOM element for option receivers
+ */
+const createReceiverOption = (receiver) => {
+	let option = document.createElement("option");
+	option.value = receiver.userid;
+	option.textContent = receiver.name;
+
+	return option;
+};
+
+/**
+ * create DOM element for option group
+ */
+const createGroupOption = (group) => {
+	let option = document.createElement("option");
+	option.value = group.id;
+	option.textContent = group.name;
+
+	return option;
+};
+
+/**
+ * Handle close dropdown
+ */
+const closeDropdown = (dropdown) => {
+	dropdown.style.maxHeight = 0;
+	dropdown.style.padding = 0;
+};
+
+/**
+ * Handle close dropdown
+ */
+const toggleDropdown = (dropdown) => {
+	if (dropdown.style.padding == "10px") {
+		closeDropdown(dropdown);
+	} else {
+		dropdown.style.padding = "10px";
+		dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+	}
+};
+
 /**
  * Handle Modal Logic
  */

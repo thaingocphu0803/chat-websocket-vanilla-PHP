@@ -76,7 +76,7 @@
 				let response = await postApi("auth/login", payload);
 
 				// Handle login failure
-				if (response.code && response.code !== "0") {
+				if (response.code && (response.code == errorCode.auth0001 || response.code ==  errorCode.auth0002)) {
 					let message = response.message;
 
 					renderError(loginError,message);

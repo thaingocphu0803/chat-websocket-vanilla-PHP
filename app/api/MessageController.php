@@ -15,14 +15,14 @@ class MessageController
 	}
 
 	/**
-     * Fetch all messages between two users
-     */
+	 * Fetch all messages between two users
+	 */
 	public function getMessage()
 	{
-		 // Get request payload (JSON)
+		// Get request payload (JSON)
 		$payload = get_request_data();
 
-		 // Prepare param and SQL
+		// Prepare param and SQL
 		$param  = [
 			':receiverid' => $payload['receiverid'],
 			':userid' => $payload['userid']
@@ -52,7 +52,7 @@ class MessageController
 				'messages' => $messages
 			];
 
-			 // Send JSON response to client
+			// Send JSON response to client
 			send_response($data);
 		} catch (PDOException $e) {
 
@@ -62,13 +62,13 @@ class MessageController
 	}
 
 	/**
-     * Save a new message to the database
-     */
-	public function saveMessage($message_obj)
+	 * Save a new message to the database
+	 */
+	public function savePrivateMessage($message_obj)
 	{
 		try {
 
-		 	// Prepare param and SQL
+			// Prepare param and SQL
 			$param = [
 				':sender' => $message_obj['sender'],
 				':receiver' => $message_obj['receiver'],
@@ -77,6 +77,32 @@ class MessageController
 			$sql = <<<SQL
 				INSERT INTO messages (sender, receiver, message)
 				VALUES(:sender, :receiver, :message)
+			SQL;
+
+			// Execute insert
+			sql_bind_exec($sql, $param, $this->conn);
+
+			return true;
+		} catch (PDOException $e) {
+
+			// Return false if DB error occurs
+			return false;
+		}
+	}
+
+	public function saveGroupMessage($message_obj)
+	{
+		try {
+
+			// Prepare param and SQL
+			$param = [
+				':sender' => $message_obj['sender'],
+				':group_receiver_id' => $message_obj['receiver'],
+				':message' => $message_obj['message']
+			];
+			$sql = <<<SQL
+				INSERT INTO messages (sender, group_receiver_id, message)
+				VALUES(:sender, :group_receiver_id, :message)
 			SQL;
 
 			// Execute insert

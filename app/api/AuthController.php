@@ -9,19 +9,20 @@ session_start();
  */
 class AuthController
 {
+	private $conn;
 
-
-	public function __construct() {}
+	public function __construct() {
+		// Connect to the database
+		$this->conn = connect_db();
+	}
 
 	/**
      * Handle user login request
      */
 	public function login()
 	{
-		try {
-			 // Connect to the database
-			$conn = connect_db();
 
+		try {
 			// Get request payload (JSON) and extract userid/password
 			$payload = get_request_data();
 			$userid = $payload['userid'];
@@ -42,7 +43,7 @@ class AuthController
 			SQL;
 
   			// Execute SQL and fetch user info
-			$user = sql_bind_fetch_one($sql, $param, $conn);
+			$user = sql_bind_fetch_one($sql, $param, $this->conn);
 
 			// Hash the input password to compare with stored hash
 			$hash_input = hash('sha256', $pssw);
@@ -76,12 +77,10 @@ class AuthController
      */
 	public function getLoginState()
 	{
+		// Check if session contains a logged-in user
+		check_login();
+		
 		try {
-			// Check if session contains a logged-in user
-			if (!isset($_SESSION['userid']) || is_null($_SESSION['userid'])) {
-				throw new Exception('User is logged out.');
-			}
-
 			// Prepare user info from session
 			$data = [
 				'userid' => $_SESSION['userid'],

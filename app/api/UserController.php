@@ -10,22 +10,25 @@ session_start();
  */
 class UserController
 {
-	public function __construct() {}
+	private $conn;
+
+	public function __construct() {
+		// Connect to database
+		$this->conn = connect_db();
+	}
 
 	/**
      * Get the list of receivers (all users except the current logged-in user)
      */
 	public function getReceivers()
 	{
+		// Check if session contains a logged-in user
+		check_login();
+		
 		try {
-			// Connect to database
-			$conn = connect_db();
-
-			// Get current logged-in user ID from session
-			$userid = $_SESSION['userid'];
 
 		 	// Prepare param and SQL
-			$param = [':userid' => $userid];
+			$param = [':userid' => $_SESSION['userid']];
 			$sql = <<<SQL
 				SELECT
 					userid, name
@@ -36,7 +39,7 @@ class UserController
 			SQL;
 
 			 // Execute query
-			$receivers  = sql_bind_fetchall($sql, $param, $conn);
+			$receivers  = sql_bind_fetchall($sql, $param, $this->conn);
 
 			// If no receivers found, throw exception
 			if (!count($receivers)) {

@@ -13,12 +13,13 @@ $route = [
 	'GET' => [
 		'auth/getLoginState' => ['AuthController', 'getLoginState'],
 		'user/getReceivers' => ['UserController', 'getReceivers'],
+		'groupchat/getGroups' => ['GroupChatController', 'getGroups']
 	],
 
 	'POST' => [
 		'auth/login' => ['AuthController', 'login'],
 		'message/getMessage' => ['MessageController', 'getMessage'],
-
+		'groupchat/create' => ['GroupChatController', 'create']
 	]
 ];
 
@@ -28,6 +29,7 @@ try {
 	import_controller('AuthController');
 	import_controller('UserController');
 	import_controller('MessageController');
+	import_controller('GroupChatController');
 
 	// Validate route
 	if (!isset($route[$method][$uri])) {

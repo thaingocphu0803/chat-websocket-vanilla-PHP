@@ -132,7 +132,7 @@ class SocketServer
 	/**
 	 * Disconnect a client and remove from list
 	 */
-	function disconnect_client($socket)
+	private function disconnect_client($socket)
 	{
 		$client_id = array_search($socket, $this->clients, true);
 		if ($client_id) {
@@ -145,24 +145,41 @@ class SocketServer
 	/**
 	 * Send message to the intended receiver client
 	 */
-	function send_to_assign_client($message_data)
+	private function send_to_assign_client($message_data)
 	{
-		if (count($message_data) && $message_data['type'] == WS_TYPE_CHAT) {
+		if (count($message_data) && $message_data['type'] == WS_TYPE_PCHAT) {
+			$this->send_private_message($message_data);
 
-			//Save message to DB first
-			$is_savedMessage = $this->messageController->saveMessage($message_data['data']);
-			if ($is_savedMessage == false) {
-				echo "Failed to send message.\n";
-			}
-
-			// Send message to assign receiver sockets
-			foreach ($this->clients as $client_id => $client_socket) {
-				if ($client_id == $message_data['data']['receiver']) {
-					$receiverSocket  = $client_socket;
-					send_message($receiverSocket , $message_data);
-				}
-			}
+		}else if(count($message_data) && $message_data['type'] == WS_TYPE_GCHAT){
+			$this->send_group_message($message_data);
 		}
+	}
+
+
+	/**
+	 * Handle to send private message
+	 */
+	private function send_private_message($message_data){
+		//Save message to DB first
+		$is_savedMessage = $this->messageController->savePrivateMessage($message_data['data']);
+		if ($is_savedMessage == false) {
+				echo "Failed to send message.\n";
+		}
+
+		// Send message to assign receiver sockets
+		foreach ($this->clients as $client_id => $client_socket) {
+		if ($client_id == $message_data['data']['receiver']) {
+			$receiverSocket  = $client_socket;
+			send_message($receiverSocket , $message_data);
+		}
+		}
+	}
+
+	/**
+	 * Handle to send group message
+	 */
+	private function send_group_message($message_data){
+		echo 111 . "\n";
 	}
 }
 
