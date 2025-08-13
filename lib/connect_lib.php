@@ -126,9 +126,9 @@ function transaction_commit(PDO $conn)
 }
 
 /**
- * Get last inserted ID
+ * Retrieve the last inserted ID from a PDO connection.
  */
-function get_insert_id(PDO $conn)
+function get_last_insert_id(PDO $conn)
 {
 	$id = $conn->lastInsertId();
 	if (empty($id)) {

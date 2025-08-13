@@ -4,17 +4,19 @@ require_once __DIR__ . '/../../boostrap.php';
 
 // import MessageController
 import_controller('MessageController');
+// import GroupController
+import_controller('GroupController');
 
 class SocketServer
 {
 	private $server;
 	private $clients = [];
 	private $messageController;
+	private $groupChatController;
 
-	public function __construct($host, $port, $messageController)
+	public function __construct($host, $port)
 	{
 		set_time_limit(TIMEOUT);
-		$this->messageController = $messageController;
 		$this->init_socket($host, $port);
 		$this->accept_connection();
 	}
@@ -49,7 +51,7 @@ class SocketServer
 				throw new Exception('Socket listen failed:' . socket_strerror(socket_last_error()));
 			}
 		} catch (Exception $e) {
-			if($this->server instanceof Socket){
+			if ($this->server instanceof Socket) {
 				socket_close($this->server);
 			}
 			echo $e->getMessage();
@@ -125,7 +127,7 @@ class SocketServer
 			$this->disconnect_client($socket);
 		} else {
 			$message_data = get_message_data($raw_message);
-			$this->send_to_assign_client($message_data);
+			$this->route_message_to_client($message_data);
 		}
 	}
 
@@ -143,47 +145,75 @@ class SocketServer
 	}
 
 	/**
-	 * Send message to the intended receiver client
+	 * Send message to the intended receiver client(s) based on message type
 	 */
-	private function send_to_assign_client($message_data)
+	private function route_message_to_client($message_data)
 	{
+		// create message controller to save message
+		$this->messageController = new MessageController();
+
+		// handle send message follow by chat type
 		if (count($message_data) && $message_data['type'] == WS_TYPE_PCHAT) {
 			$this->send_private_message($message_data);
-
-		}else if(count($message_data) && $message_data['type'] == WS_TYPE_GCHAT){
+		} else if (count($message_data) && $message_data['type'] == WS_TYPE_GCHAT) {
 			$this->send_group_message($message_data);
 		}
 	}
 
 
 	/**
-	 * Handle to send private message
+	 * Handle to send private (1 to 1) message
 	 */
-	private function send_private_message($message_data){
+	private function send_private_message($message_data)
+	{
 		//Save message to DB first
 		$is_savedMessage = $this->messageController->savePrivateMessage($message_data['data']);
 		if ($is_savedMessage == false) {
-				echo "Failed to send message.\n";
+			echo "Failed to save private message.\n";
 		}
 
-		// Send message to assign receiver sockets
+		// Send message to assign partner
 		foreach ($this->clients as $client_id => $client_socket) {
-		if ($client_id == $message_data['data']['receiver']) {
-			$receiverSocket  = $client_socket;
-			send_message($receiverSocket , $message_data);
-		}
+			if ($client_id == $message_data['data']['receiver']) {
+				$receiverSocket  = $client_socket;
+				send_message($receiverSocket, $message_data);
+			}
 		}
 	}
 
 	/**
 	 * Handle to send group message
 	 */
-	private function send_group_message($message_data){
-		echo 111 . "\n";
+	private function send_group_message($message_data)
+	{
+		// creat group controller to get group member
+		$this->groupChatController = new GroupController();
+		
+		//Save message to DB first
+		$is_savedMessage = $this->messageController->saveGroupMessage($message_data['data']);
+		if ($is_savedMessage == false) {
+			echo "Failed to save group message.\n";
+		}
+
+		// get group members except current user
+		$group_uid  = $message_data['data']['receiver'];
+		$member_id =  $message_data['data']['sender'];
+		$memberIds = $this->groupChatController->getMemberByGroupUid($group_uid, $member_id);
+
+		if ($memberIds === false) {
+			echo "Failed to send to group message";
+		} else {
+			// Send message to other member
+			foreach ($this->clients as $client_id => $client_socket) {
+				if (in_array($client_id, $memberIds)) {
+					$receiverSocket  = $client_socket;
+					send_message($receiverSocket, $message_data);
+				}
+			}
+		}
 	}
 }
 
 // Start the WebSocket server
-$messageController = new MessageController();
 
-new SocketServer(WS_HOST, WS_PORT, $messageController);
+new SocketServer(WS_HOST, WS_PORT);

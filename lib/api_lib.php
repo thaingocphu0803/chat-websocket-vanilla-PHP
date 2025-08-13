@@ -38,7 +38,7 @@ function get_request_data()
 }
 
 /**
- * Check user login state by user id
+ * Check if user is logged in via session.
  */
 function check_login()
 {

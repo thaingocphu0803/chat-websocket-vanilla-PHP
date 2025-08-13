@@ -12,14 +12,16 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = [
 	'GET' => [
 		'auth/getLoginState' => ['AuthController', 'getLoginState'],
-		'user/getReceivers' => ['UserController', 'getReceivers'],
-		'groupchat/getGroups' => ['GroupChatController', 'getGroups']
+		'user/getPartners' => ['UserController', 'getPartners'],
+		'groupchat/getGroups' => ['GroupController', 'getGroups']
 	],
 
 	'POST' => [
 		'auth/login' => ['AuthController', 'login'],
-		'message/getMessage' => ['MessageController', 'getMessage'],
-		'groupchat/create' => ['GroupChatController', 'create']
+		'message/getPrivateMessage' => ['MessageController', 'getPrivateMessage'],
+		'groupchat/create' => ['GroupController', 'create'],
+		'message/getGroupMessage' => ['MessageController', 'getGroupMessage'],
+
 	]
 ];
 
@@ -29,7 +31,7 @@ try {
 	import_controller('AuthController');
 	import_controller('UserController');
 	import_controller('MessageController');
-	import_controller('GroupChatController');
+	import_controller('GroupController');
 
 	// Validate route
 	if (!isset($route[$method][$uri])) {

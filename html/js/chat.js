@@ -2,77 +2,78 @@
 	"use strict";
 
 	let FUNCT = {};
-	let receivers = [];
+	let partners = [];
 	let choosenUsers = [];
 	let groups = [];
 
 	// Cache DOM elements
-	let selectPrivate = document.querySelector('select[name="receiver"]');
+	let selectPrivate = document.querySelector('select[name="partner"]');
 	let selectGroup = document.querySelector('select[name="group"]');
 	let chatBody = document.getElementById("chat_body");
 	let useridInput = document.querySelector('input[name="current_userid"]');
-	let usernameInput = document.querySelector('input[name="current_username"]');
+	let usernameInput = document.querySelector(
+		'input[name="current_username"]'
+	);
 
 	let choosenUserEl = document.querySelector(".choosen-users");
 	let dropdown = document.querySelector(".select-memeber-dropdown");
 	let groupNameInput = document.querySelector('input[name="group_name"]');
 	let errorEl = document.querySelector(".create-group-error");
-	let selectChatType = document.querySelector('select[name="chat-type"]')
+	let selectChatType = document.querySelector('select[name="chat-type"]');
 
 	/**
-	 * Load and render receiver list (lazy-load on first click)
+	 * Load and render partner list (lazy-load on first click)
 	 */
-	FUNCT.renderReceivers = () => {
+	FUNCT.renderPartners = () => {
 		selectPrivate.addEventListener("click", async function (e) {
-			if (receivers.length == 0) {
-				let response = await getApi("user/getReceivers");
+			if (partners.length == 0) {
+				let response = await getApi("user/getPartners");
 				// Only load once
 				if (response.code !== "0") return;
 
-				receivers = response.data.receivers;
+				partners = response.data.partners;
 			}
 
 			// render if select had not render before
 			if (selectPrivate.children.length > 1) return;
 
 			// Populate <select> with options
-			receivers.forEach((receiver) => {
-				let option = createReceiverOption(receiver);
-
-				selectPrivate.append(option);
-			});
+			populateSelect(selectPrivate, partners, createSelectOption);
 		});
 	};
 
 	/**
-	 * Render chat messages for the selected receiver
+	 * Render chat messages for the selected partner
 	 */
-	FUNCT.renderMessageByReceiver = () => {
+	FUNCT.renderMessageByPartner = () => {
 		selectPrivate.addEventListener("change", async function (e) {
-			let receiverid = e.target.value;
+			let partnerid = e.target.value;
 
-			// If messages for this receiver are not cached, fetch them
-			if (typeof chatMessages[receiverid] == "undefined") {
+			// If messages for this partner are not cached, fetch them
+			if (typeof chatMessages[partnerid] == "undefined") {
 				let payload = {
-					receiverid,
+					partnerid,
 					userid: useridInput.value.trim(),
 				};
 
-				let response = await postApi("message/getMessage", payload);
+				let response = await postApi(
+					"message/getPrivateMessage",
+					payload
+				);
 
 				if (response.code !== "0") return;
 
-				chatMessages[receiverid] = response.data.messages;
+				chatMessages[partnerid] = response.data.messages;
 			}
 
 			// Clear chat body before rendering
 			chatBody.innerHTML = "";
 
-			if (!chatMessages[receiverid].length) return;
+			if (!chatMessages[partnerid].length) return;
 
 			// Render messages: distinguish sent vs received
-			chatMessages[receiverid].forEach((messageObject) => {
-				if (messageObject.sender == receiverid) {
+			chatMessages[partnerid].forEach((messageObject) => {
+				if (messageObject.sender == partnerid) {
 					let receiveMessage = createReceiveMessage(messageObject);
 					chatBody.append(receiveMessage);
 				} else {
@@ -88,11 +89,16 @@
 	 */
 	FUNCT.sendMessageEvent = () => {
 		document.addEventListener("click", function (e) {
-			let messageInput = document.querySelector('textarea[name="message"]');
+			let messageInput = document.querySelector(
+				'textarea[name="message"]'
+			);
 			let chatType = selectChatType.value.trim();
-			
+
 			// get receiver id by chat type
-			let receiver = (chatType === 'private') ? selectPrivate.value.trim() : selectGroup.value.trim();
+			let receiver =
+				chatType === "private"
+					? selectPrivate.value.trim()
+					: selectGroup.value.trim();
 
 			// Skip empty message
 			if (!messageInput.value.length) return;
@@ -110,7 +116,7 @@
 
 				// Add message to local cache under receiver ID
 				chatMessages[receiver].push(messageObj.data);
-				console.log(chatMessages);
+				console.log(chatMessages, messageObj);
 
 				// Clear the textarea after sending
 				messageInput.value = "";
@@ -126,46 +132,51 @@
 	};
 
 	/**
-	 * Handle render select element following chat type
+	 * Toggle private/group select UI based on selected chat type
 	 */
 	FUNCT.selectChatTypeEvent = () => {
 		selectChatType.addEventListener("change", function (e) {
-				let value = e.target.value;
-				if (value === "private") {
-					selectPrivate.classList.remove("d-none");
-					selectGroup.parentElement.classList.add("d-none");
-				} else if (value === "group") {
-					selectGroup.parentElement.classList.remove("d-none");
-					selectPrivate.classList.add("d-none");
-				}
+			let value = e.target.value;
+			if (value === "private") {
+				// Show private select, hide group select
+				selectPrivate.classList.remove("d-none");
+				selectGroup.parentElement.classList.add("d-none");
+				selectGroup.selectedIndex = 0;
+			} else if (value === "group") {
+				// Show group select, hide private select
+				selectGroup.parentElement.classList.remove("d-none");
+				selectPrivate.classList.add("d-none");
+				selectPrivate.selectedIndex = 0;
+			}
 		});
 	};
 
 	/**
-	 * Handle userlist to add group
+	 * Show dropdown user list when adding members to group
 	 */
-	FUNCT.renderUserListEvent = () => {
+	FUNCT.renderDropdownUserEvent = () => {
 		document.addEventListener("click", async function (e) {
 			if (e.target.closest(".select-member")) {
-				if (receivers.length == 0) {
-					let response = await getApi("user/getReceivers");
+				// Fetch partners only once
+				if (partners.length == 0) {
+					let response = await getApi("user/getPartners");
 					// Only load once
 					if (response.code !== "0") return;
 
-					receivers = response.data.receivers;
+					partners = response.data.partners;
 				}
 
-				// render if dropdown had not render before
+				// Render dropdown only if empty
 				if (!dropdown.children.length) {
-					receivers.forEach((receiver) => {
-						let dropdownItem = createUserDropdownItem(receiver);
-						dropdown.append(dropdownItem);
-					});
+					populateSelect(
+						dropdown,
+						partners,
+						createUserDropdownItem
+					);
 				}
 
 				// toggle dropdown
 				toggleDropdown(dropdown);
-
 			} else if (!e.target.matches(".select-memeber-dropdown")) {
 				closeDropdown(dropdown);
 			}
@@ -173,9 +184,9 @@
 	};
 
 	/**
-	 * Handle choosenUserEvent
+	 * Add/remove selected user to group member list
 	 */
-	FUNCT.ChoosenUserEvent = () => {
+	FUNCT.ChooseDropdownUserEvent = () => {
 		document.addEventListener("change", function (e) {
 			if (e.target.matches('input[name="group_member[]"]')) {
 				let _this = e.target;
@@ -188,6 +199,7 @@
 					name: userName,
 				};
 
+				// Add or remove from selected users
 				if (_this.checked) {
 					choosenUsers.push(userInfor);
 				} else {
@@ -202,7 +214,7 @@
 	};
 
 	/**
-	 * Handle render choosen users
+	 * Display chosen users' names or default text if none selected
 	 */
 	FUNCT.renderChoosenUsers = () => {
 		let content;
@@ -218,7 +230,7 @@
 	};
 
 	/**
-	 * Handle clear modal input
+	 * Reset group creation modal inputs and selections
 	 */
 	FUNCT.ClearChoosenUsers = () => {
 		let userCheckBoxs = document.querySelectorAll(
@@ -241,11 +253,13 @@
 	};
 
 	/**
-	 * Handle create group event
+	 * Submit group creation form
 	 */
 	FUNCT.createGroupEvent = () => {
 		document.addEventListener("click", async function (e) {
 			if (e.target.matches(".createGroup")) {
+				
+				// Validate group name
 				if (!groupNameInput.value.length) {
 					let message = "Please enter group name.";
 
@@ -268,15 +282,14 @@
 				// clear all data modal if created successfully
 				FUNCT.ClearChoosenUsers();
 
-				// alert if created successfully
-				if (response.data.id && response.message.length) {
-					// render success message
+				// Show success and refresh group list
+				if (response.status === "ok" && response.message.length) {
 					renderSuccess(errorEl, response.message);
-
-					// reset select group data to fetch new data from db
+					
 					selectGroup
 						.querySelectorAll("option:not([disabled])")
 						.forEach((option) => option.remove());
+					
 					groups = [];
 				}
 			}
@@ -284,10 +297,11 @@
 	};
 
 	/**
-	 * Handle render group event
+	 * Load and render group list into select dropdown
 	 */
-	FUNCT.renderGroupListEvent = () => {
+	FUNCT.renderGroups = () => {
 		selectGroup.addEventListener("click", async function (e) {
+			// Fetch groups only once
 			if (groups.length == 0) {
 				let response = await getApi("groupchat/getGroups");
 				// Only load once
@@ -296,14 +310,51 @@
 				groups = response.data.groups;
 			}
 
-			// render if select had not render before
+			// Render only if options not already loaded
 			if (selectGroup.children.length > 1) return;
 
 			// Populate <select> with options
-			groups.forEach((group) => {
-				let option = createGroupOption(group);
+			populateSelect(selectGroup, groups, createSelectOption);
+		});
+	};
+	/**
+	 * Load and display messages for the selected group chat
+	 */
+	FUNCT.renderMessageByGroupChat = () => {
+		selectGroup.addEventListener("change", async function (e) {
+			let groupUid = e.target.value;
+			let userid = useridInput.value.trim();
 
-				selectGroup.append(option);
+			// If messages for this group are not cached, fetch them
+			if (typeof chatMessages[groupUid] == "undefined") {
+				let payload = {
+					groupUid,
+				};
+
+				let response = await postApi(
+					"message/getGroupMessage",
+					payload
+				);
+
+				if (response.code !== "0") return;
+
+				chatMessages[groupUid] = response.data.messages;
+			}
+
+			// Clear chat body before rendering
+			chatBody.innerHTML = "";
+
+			if (!chatMessages[groupUid].length) return;
+
+			// Render messages: distinguish sent vs received
+			chatMessages[groupUid].forEach((messageObject) => {
+				if (messageObject.sender == userid) {
+					let sendMessage = createSendMessage(messageObject);
+					chatBody.append(sendMessage);
+				} else {
+					let receiveMessage = createReceiveMessage(messageObject);
+					chatBody.append(receiveMessage);
+				}
 			});
 		});
 	};
@@ -313,12 +364,13 @@
 	 */
 	document.addEventListener("DOMContentLoaded", function () {
 		FUNCT.sendMessageEvent();
-		FUNCT.renderReceivers();
-		FUNCT.renderMessageByReceiver();
+		FUNCT.renderPartners();
+		FUNCT.renderMessageByPartner();
 		FUNCT.selectChatTypeEvent();
-		FUNCT.renderUserListEvent();
-		FUNCT.ChoosenUserEvent();
+		FUNCT.renderDropdownUserEvent();
+		FUNCT.ChooseDropdownUserEvent();
 		FUNCT.createGroupEvent();
-		FUNCT.renderGroupListEvent();
+		FUNCT.renderGroups();
+		FUNCT.renderMessageByGroupChat();
 	});
 })();

@@ -5,7 +5,6 @@ session_start();
 
 /**
  * Class AuthController
- * Handles user authentication (login & session check)
  */
 class AuthController
 {

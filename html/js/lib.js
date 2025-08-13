@@ -3,11 +3,17 @@ var socket;
 //cache message between users
 var chatMessages = [];
 
-// Define apo error code
+// Define api error code
 var errorCode = {
 	auth0001: "auth-0001",
 	auth0002: "auth-0002",
 	groupChat0001: "groupchat-0001",
+};
+
+// define chat type
+var chatType = {
+	private: "chat_private",
+	group: "chat_group",
 };
 
 /**
@@ -54,42 +60,42 @@ const getApi = async (method) => {
  * Create DOM element for sent message
  */
 const createSendMessage = (messageObject) => {
-	let divE = document.createElement("div");
-	let strongE = document.createElement("strong");
-	let spanE = document.createElement("span");
+	let divEl = document.createElement("div");
+	let strongEl = document.createElement("strong");
+	let spanEl = document.createElement("span");
 
-	divE.className = "chat-message align-self-right";
+	divEl.className = "chat-message align-self-right";
 
-	strongE.className = "text-orange-700";
-	strongE.textContent = `You: `;
+	strongEl.className = "text-orange-700";
+	strongEl.textContent = `You: `;
 
-	spanE.textContent = messageObject.message;
+	spanEl.textContent = messageObject.message;
 
-	divE.append(strongE);
-	divE.append(spanE);
+	divEl.append(strongEl);
+	divEl.append(spanEl);
 
-	return divE;
+	return divEl;
 };
 
 /**
  * Create DOM element for received message
  */
 const createReceiveMessage = (messageObject) => {
-	let divE = document.createElement("div");
-	let strongE = document.createElement("strong");
-	let spanE = document.createElement("span");
+	let divEl = document.createElement("div");
+	let strongEl = document.createElement("strong");
+	let spanEl = document.createElement("span");
 
-	divE.className = "chat-message align-self-left";
+	divEl.className = "chat-message align-self-left";
 
-	strongE.className = "text-blue-700";
-	strongE.textContent = `${messageObject.name}: `;
+	strongEl.className = "text-blue-700";
+	strongEl.textContent = `${messageObject.name}: `;
 
-	spanE.textContent = messageObject.message;
+	spanEl.textContent = messageObject.message;
 
-	divE.append(strongE);
-	divE.append(spanE);
+	divEl.append(strongEl);
+	divEl.append(spanEl);
 
-	return divE;
+	return divEl;
 };
 
 /**
@@ -106,17 +112,18 @@ const sendSocketMessage = (messageObj) => {
 /**
  * Parse JSON from received socket message
  */
-const getSoketMessage = (message) => {
+const getSocketMessage = (message) => {
 	return JSON.parse(message);
 };
 
+
 /**
- * Connect to WebSocket server
+ * Establish WebSocket connection and handle events
  */
-const socketConnect = (userid) => {
+const connectChatSocket = (userid) => {
 	socket = new WebSocket("ws://192.168.0.99:5000");
 
-	// When WebSocket connection is opened
+	// When WebSocket connection is successfully opened
 	socket.onopen = () => {
 		console.log("WebSocket connection opened");
 		if (socket.readyState === WebSocket.OPEN) {
@@ -131,36 +138,70 @@ const socketConnect = (userid) => {
 		}
 	};
 
-	// Receive message from server
+	// When a new message is received from WebSocket server
 	socket.onmessage = (event) => {
-		let messageObj = getSoketMessage(event.data);
+		let messageObj = getSocketMessage(event.data);
 		let chatBody = document.getElementById("chat_body");
-		let useridInput = document.querySelector(
-			'input[name="current_userid"]'
-		);
-		let receiveridInput = document.querySelector('select[name="receiver"]');
 
-		let partnerid = receiveridInput.value.trim();
-		let userid = useridInput.value.trim();
-
-		let receiveMessage = createReceiveMessage(messageObj.data);
-
-		// Render message only if it's from the selected partner to current user
-		if (
-			partnerid == messageObj.data.sender &&
-			userid == messageObj.data.receiver
-		) {
-			// Cache received message by partner ID
-			chatMessages[partnerid].push(messageObj.data);
-
-			// Append message to chat UI
-			chatBody.append(receiveMessage);
+		// Route message to proper renderer based on type
+		if (messageObj.type === chatType.private) {
+			renderPrivateMessageFromSocket(messageObj.data, chatBody);
+		} else if (messageObj.type === chatType.group) {
+			renderGroupMessageFromSocket(messageObj.data, chatBody);
 		}
 	};
 };
 
 /**
- * Create DOM element for dropdown user list
+ * Render private chat messages received from socket.
+ * Only displays messages if they match the selected partner and user.
+ */
+const renderPrivateMessageFromSocket = (messageData, chatBodyEl) => {
+	let useridInput = document.querySelector('input[name="current_userid"]');
+	let partneridInput = document.querySelector('select[name="partner"]');
+
+	let partnerid = partneridInput.value.trim();
+	let userid = useridInput.value.trim();
+
+	// Cache received message by sender ID
+	chatMessages[messageData.sender].push(messageData);
+
+	// Only render if message belongs to current conversation
+	if (partnerid == messageData.sender && userid == messageData.receiver) {
+		appendSocketMessageToChat(messageData, chatBodyEl);
+	}
+};
+
+/**
+ * Render group chat messages received from socket.
+ * Only displays messages if they belong to the selected group.
+ */
+const renderGroupMessageFromSocket = (messageData, chatBodyEl) => {
+	let groupUidInput = document.querySelector('select[name="group"]');
+
+	let groupUid = groupUidInput.value.trim();
+
+	// Cache received message by group ID
+	chatMessages[messageData.receiver].push(messageData);
+
+	// Only render if message belongs to the selected group
+	if (groupUid == messageData.receiver) {
+		appendSocketMessageToChat(messageData, chatBodyEl);
+	}
+};
+
+/**
+ * Append a formatted message element to chat UI.
+ */
+const appendSocketMessageToChat = (messageData, chatBodyEl) => {
+	// create message element
+	let receiveMessage = createReceiveMessage(messageData);
+	// Append message to chat UI
+	chatBodyEl.append(receiveMessage);
+};
+
+/**
+ * Create a dropdown item for user list with checkbox.
  */
 const createUserDropdownItem = (user) => {
 	// create dropdown item
@@ -171,12 +212,12 @@ const createUserDropdownItem = (user) => {
 	let checkbox = document.createElement("input");
 	checkbox.type = "checkbox";
 	checkbox.name = "group_member[]";
-	checkbox.id = user.userid;
-	checkbox.value = user.userid;
+	checkbox.id = user.id;
+	checkbox.value = user.id;
 
 	// create dropdown item label
 	let label = document.createElement("label");
-	label.htmlFor = user.userid;
+	label.htmlFor = user.id;
 	label.textContent = user.name;
 
 	// append checkbox and label to dropdown item
@@ -186,7 +227,8 @@ const createUserDropdownItem = (user) => {
 };
 
 /**
- * handle render error
+ * Show error message in UI.
+ * Ensures error element is visible if hidden.
  */
 const renderError = (errorEl, message) => {
 	errorEl.textContent = message;
@@ -198,7 +240,7 @@ const renderError = (errorEl, message) => {
 };
 
 /**
- * handle render success message
+ * Show success message in UI and auto-hide after 3 seconds.
  */
 const renderSuccess = (element, message) => {
 	element.textContent = message;
@@ -221,34 +263,33 @@ const renderSuccess = (element, message) => {
 		if (element.classList.contains("text-success")) {
 			element.classList.remove("text-success");
 		}
-		element.textContent = "";
 	}, 3000);
 };
 
 /**
- * create DOM element for option receivers
+ * Create <option> element for <select>.
  */
-const createReceiverOption = (receiver) => {
+const createSelectOption = (object) => {
 	let option = document.createElement("option");
-	option.value = receiver.userid;
-	option.textContent = receiver.name;
+	option.value = object.id;
+	option.textContent = object.name;
 
 	return option;
 };
 
 /**
- * create DOM element for option group
+ * Populate a <select> with options created from a list.
  */
-const createGroupOption = (group) => {
-	let option = document.createElement("option");
-	option.value = group.id;
-	option.textContent = group.name;
+const populateSelect = (selectEl, list, callback) => {
+	list.forEach((object) => {
+		let option = callback(object);
 
-	return option;
+		selectEl.append(option);
+	});
 };
 
 /**
- * Handle close dropdown
+ * Collapse dropdown menu.
  */
 const closeDropdown = (dropdown) => {
 	dropdown.style.maxHeight = 0;
@@ -256,7 +297,7 @@ const closeDropdown = (dropdown) => {
 };
 
 /**
- * Handle close dropdown
+ * Toggle dropdown open/close state.
  */
 const toggleDropdown = (dropdown) => {
 	if (dropdown.style.padding == "10px") {
@@ -268,7 +309,8 @@ const toggleDropdown = (dropdown) => {
 };
 
 /**
- * Handle Modal Logic
+ * Modal handling logic.
+ * Supports open/close via buttons and clicking outside the modal content.
  */
 (function () {
 	document.addEventListener("click", function (e) {

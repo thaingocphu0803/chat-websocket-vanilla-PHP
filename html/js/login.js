@@ -28,7 +28,7 @@
 			currentUsername.value = username;
 			
 			// Connect to WebSocket server
-			socketConnect(userid)
+			connectChatSocket(userid)
 		} else {
 			// Not logged in: show login page
 			loginPage.hidden = false;
