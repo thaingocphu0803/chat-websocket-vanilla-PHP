@@ -12,7 +12,7 @@ class SocketServer
 	private $server;
 	private $clients = [];
 	private $messageController;
-	private $groupChatController;
+	private $groupController;
 
 	public function __construct($host, $port)
 	{
@@ -187,7 +187,7 @@ class SocketServer
 	private function send_group_message($message_data)
 	{
 		// creat group controller to get group member
-		$this->groupChatController = new GroupController();
+		$this->groupController = new GroupController();
 		
 		//Save message to DB first
 		$is_savedMessage = $this->messageController->saveGroupMessage($message_data['data']);
@@ -198,7 +198,7 @@ class SocketServer
 		// get group members except current user
 		$group_uid  = $message_data['data']['receiver'];
 		$member_id =  $message_data['data']['sender'];
-		$memberIds = $this->groupChatController->getMemberByGroupUid($group_uid, $member_id);
+		$memberIds = $this->groupController->getMemberByGroupUid($group_uid, $member_id);
 
 		if ($memberIds === false) {
 			echo "Failed to send to group message";

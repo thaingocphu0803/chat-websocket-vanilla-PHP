@@ -9,9 +9,9 @@ function connect_db()
 	$username = DB_USER;
 	$password = DB_PASSWORD;
 	try {
-		$conn = new PDO($dns, $username, $password);
-		$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		return $conn;
+		$pdo = new PDO($dns, $username, $password);
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		return $pdo;
 	} catch (PDOException $e) {
 		// Return standardized error response if connection fails
 		send_response([], 'pdo-0001', 'ng', 'Failed to connect db.');
@@ -95,10 +95,10 @@ function sql_bind_exec($query, $param, $pdo)
 /**
  * Roll back the current database transaction
  */
-function transaction_rollback(PDO $conn)
+function transaction_rollback(PDO $pdo)
 {
-	if (!$conn->rollBack()) {
-		send_response([], 'pdo-0002', 'ng', 'Failed to rollback db.');
+	if (!$pdo->rollBack()) {
+		send_response([], 'pdo-0002', 'ng', 'Failed to rollback transaction.');
 	}
 	return true;
 }
@@ -106,9 +106,9 @@ function transaction_rollback(PDO $conn)
 /**
  * Start a database transaction
  */
-function transaction_start(PDO $conn)
+function transaction_start(PDO $pdo)
 {
-	if (!$conn->beginTransaction()) {
+	if (!$pdo->beginTransaction()) {
 		throw new PDOException("faied to start transaction.");
 	}
 	return true;
@@ -117,9 +117,9 @@ function transaction_start(PDO $conn)
 /**
  * Commit the current database transaction
  */
-function transaction_commit(PDO $conn)
+function transaction_commit(PDO $pdo)
 {
-	if (!$conn->commit()) {
+	if (!$pdo->commit()) {
 		throw new PDOException("faied to commit transaction.");
 	}
 	return true;
@@ -128,11 +128,11 @@ function transaction_commit(PDO $conn)
 /**
  * Retrieve the last inserted ID from a PDO connection.
  */
-function get_last_insert_id(PDO $conn)
+function get_last_insert_id(PDO $pdo)
 {
-	$id = $conn->lastInsertId();
+	$id = $pdo->lastInsertId();
 	if (empty($id)) {
-		throw new PDO("No last insert ID available.");
+		throw new PDOException("No last insert ID available.");
 	}
 	return $id;
 }

@@ -131,13 +131,14 @@ class GroupController {
 			return false;
 		}
 	}
+	
 	/**
 	 * Create a new group chat record in DB
 	 */
 	private function createGroupChat($payload){
 
 		// Generate unique group UID
-		$group_uid = $this->createGroupUid($$payload['groupName'], $_SESSION['userid']);
+		$group_uid = $this->createGroupUid($payload['groupName'], $_SESSION['userid']);
 
 		// Prepare param and SQL
 		$sql = <<<SQL

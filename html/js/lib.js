@@ -116,7 +116,6 @@ const getSocketMessage = (message) => {
 	return JSON.parse(message);
 };
 
-
 /**
  * Establish WebSocket connection and handle events
  */
@@ -168,7 +167,10 @@ const renderPrivateMessageFromSocket = (messageData, chatBodyEl) => {
 
 	// Only render if message belongs to current conversation
 	if (partnerid == messageData.sender && userid == messageData.receiver) {
-		appendSocketMessageToChat(messageData, chatBodyEl);
+		// create message element
+		let receiveMessage = createReceiveMessage(messageData);
+		// Append message to chat UI
+		chatBodyEl.append(receiveMessage);
 	}
 };
 
@@ -186,18 +188,11 @@ const renderGroupMessageFromSocket = (messageData, chatBodyEl) => {
 
 	// Only render if message belongs to the selected group
 	if (groupUid == messageData.receiver) {
-		appendSocketMessageToChat(messageData, chatBodyEl);
+		// create message element
+		let receiveMessage = createReceiveMessage(messageData);
+		// Append message to chat UI
+		chatBodyEl.append(receiveMessage);
 	}
-};
-
-/**
- * Append a formatted message element to chat UI.
- */
-const appendSocketMessageToChat = (messageData, chatBodyEl) => {
-	// create message element
-	let receiveMessage = createReceiveMessage(messageData);
-	// Append message to chat UI
-	chatBodyEl.append(receiveMessage);
 };
 
 /**
@@ -312,7 +307,7 @@ const toggleDropdown = (dropdown) => {
  * Modal handling logic.
  * Supports open/close via buttons and clicking outside the modal content.
  */
-(function () {
+(function handleModal() {
 	document.addEventListener("click", function (e) {
 		// Open modal
 		if (e.target.matches("[data-open-modal]")) {

@@ -79,20 +79,13 @@ class AuthController
 		// Check if session contains a logged-in user
 		check_login();
 		
-		try {
 			// Prepare user info from session
-			$data = [
+		$data = [
 				'userid' => $_SESSION['userid'],
 				'name' => $_SESSION['name']
+		];
 
-			];
-
-			// Send JSON response
-			send_response($data);
-		} catch (Exception $e) {
-
-			// User not logged in
-			send_response([], 'auth-0003', 'ng', $e->getMessage());
-		}
+		// Send JSON response
+		send_response($data);
 	}
 }

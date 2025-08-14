@@ -3,7 +3,7 @@
 
 	let FUNCT = {};
 	let partners = [];
-	let choosenUsers = [];
+	let chosenUsers = [];
 	let groups = [];
 
 	// Cache DOM elements
@@ -11,12 +11,7 @@
 	let selectGroup = document.querySelector('select[name="group"]');
 	let chatBody = document.getElementById("chat_body");
 	let useridInput = document.querySelector('input[name="current_userid"]');
-	let usernameInput = document.querySelector(
-		'input[name="current_username"]'
-	);
-
-	let choosenUserEl = document.querySelector(".choosen-users");
-	let dropdown = document.querySelector(".select-memeber-dropdown");
+	let usernameInput = document.querySelector('input[name="current_username"]');
 	let groupNameInput = document.querySelector('input[name="group_name"]');
 	let errorEl = document.querySelector(".create-group-error");
 	let selectChatType = document.querySelector('select[name="chat-type"]');
@@ -116,7 +111,6 @@
 
 				// Add message to local cache under receiver ID
 				chatMessages[receiver].push(messageObj.data);
-				console.log(chatMessages, messageObj);
 
 				// Clear the textarea after sending
 				messageInput.value = "";
@@ -155,6 +149,7 @@
 	 * Show dropdown user list when adding members to group
 	 */
 	FUNCT.renderDropdownUserEvent = () => {
+		let dropdown = document.querySelector(".select-memeber-dropdown");
 		document.addEventListener("click", async function (e) {
 			if (e.target.closest(".select-member")) {
 				// Fetch partners only once
@@ -201,14 +196,14 @@
 
 				// Add or remove from selected users
 				if (_this.checked) {
-					choosenUsers.push(userInfor);
+					chosenUsers.push(userInfor);
 				} else {
-					choosenUsers = choosenUsers.filter(
+					chosenUsers = chosenUsers.filter(
 						(user) => user.id != userId
 					);
 				}
 
-				FUNCT.renderChoosenUsers();
+				FUNCT.renderChosenUsers();
 			}
 		});
 	};
@@ -216,29 +211,30 @@
 	/**
 	 * Display chosen users' names or default text if none selected
 	 */
-	FUNCT.renderChoosenUsers = () => {
+	FUNCT.renderChosenUsers = () => {
+		let chosenUserEl = document.querySelector(".chosen-users");
 		let content;
 
-		if (!choosenUsers.length) {
+		if (!chosenUsers.length) {
 			content = "Choose member...";
 		} else {
-			let userName = choosenUsers.map((user) => user.name);
+			let userName = chosenUsers.map((user) => user.name);
 			content = userName.join(", ");
 		}
 
-		choosenUserEl.textContent = content;
+		chosenUserEl.textContent = content;
 	};
 
 	/**
 	 * Reset group creation modal inputs and selections
 	 */
-	FUNCT.ClearChoosenUsers = () => {
+	FUNCT.clearChosenUsers = () => {
 		let userCheckBoxs = document.querySelectorAll(
 			'input[name="group_member[]"]'
 		);
 
-		// clear cache choosen users
-		choosenUsers = [];
+		// clear cache chosen users
+		chosenUsers = [];
 
 		// clear group name input
 		groupNameInput.value = "";
@@ -249,7 +245,7 @@
 			checkbox.checked = false;
 		});
 
-		FUNCT.renderChoosenUsers();
+		FUNCT.renderChosenUsers();
 	};
 
 	/**
@@ -269,7 +265,7 @@
 
 				let payload = {
 					groupName: groupNameInput.value,
-					memberIds: choosenUsers.map((user) => user.id),
+					memberIds: chosenUsers.map((user) => user.id),
 				};
 
 				let response = await postApi("groupchat/create", payload);
@@ -280,7 +276,7 @@
 				}
 
 				// clear all data modal if created successfully
-				FUNCT.ClearChoosenUsers();
+				FUNCT.clearChosenUsers();
 
 				// Show success and refresh group list
 				if (response.status === "ok" && response.message.length) {
