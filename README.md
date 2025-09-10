@@ -1,6 +1,8 @@
 # Project Setup Guide
 This guide will help you set up and run the project locally.
+
 Author: Thai Ngoc Phu
+
 Contact: thaingocphu0803@gmail.com
 ---
 
