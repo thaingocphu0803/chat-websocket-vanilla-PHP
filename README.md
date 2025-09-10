@@ -21,7 +21,7 @@ cd /var/www/<your_domain>
 ```
 ###### Clone the project
 ```bash
-git clone https://github.com/watanabekonjac/chat-tools.git .
+git clone https://github.com/thaingocphu0803/chat-websocket-vanilla-PHP.git .
 ```
 ###### provides permission for project folder
 ```bash
