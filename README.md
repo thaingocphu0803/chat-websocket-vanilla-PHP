@@ -38,12 +38,12 @@ Edit the file `config/database_config.php` and update it with your database info
 ```php
 <?php
 
-define('DB_ENGINE',    'mysql');      
-define('DB_HOST',      'localhost');  // change to your db host
-define('DB_PORT',      '3306');       // change to your db port
-define('DB_NAME',      'chatdb');     // change to your db name
-define('DB_USER',      'admin');      // change to your db user
-define('DB_PASSWORD',  '111111');     // change to your db password
+define('DB_ENGINE',    '');      
+define('DB_HOST',      '');  // change to your db host
+define('DB_PORT',      '');       // change to your db port
+define('DB_NAME',      '');     // change to your db name
+define('DB_USER',      '');      // change to your db user
+define('DB_PASSWORD',  '');     // change to your db password
 ```
 
 ## 3. Configure Socket Server
@@ -53,8 +53,8 @@ Edit the file `config/socket_config.php` and update it with your Websocket serve
 ```php
 <?php
 
-define('WS_HOST', '192.168.0.99'); 	//change to your host (or 0.0.0.0 to accept all IP)
-define('WS_PORT', 5000);		//change to your port
+define('WS_HOST', ''); 	//change to your host (or 0.0.0.0 to accept all IP)
+define('WS_PORT', '');		//change to your port
 
 ```
 
